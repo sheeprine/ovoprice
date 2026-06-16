@@ -64,12 +64,24 @@ ovoprice/
 ├── scraper.py       # Shopify JSON API fetcher and parser
 ├── scheduler.py     # APScheduler hourly price check job
 ├── pyproject.toml
-└── templates/
-    ├── base.html
-    ├── index.html   # Home — tracked product grid
-    ├── add.html     # Enter product URL
-    ├── preview.html # Select variants before tracking
-    └── product.html # Price history chart and variant table
+├── templates/
+│   ├── base.html
+│   ├── index.html   # Home — tracked product grid
+│   ├── add.html     # Enter product URL
+│   ├── preview.html # Select variants before tracking
+│   └── product.html # Price history chart and variant table
+└── tests/
+    ├── conftest.py       # Shared fixtures and in-memory DB setup
+    ├── test_scraper.py   # Unit tests for URL parsing and Shopify API fetching
+    ├── test_routes.py    # Integration tests for all HTTP routes
+    ├── test_scheduler.py # Unit tests for price check scheduler logic
+    └── test_time_ago.py  # Unit tests for time formatting helper
+```
+
+## Running Tests
+
+```bash
+uv run pytest
 ```
 
 ## Database Schema
