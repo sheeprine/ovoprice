@@ -15,15 +15,16 @@ COPY templates/ templates/
 
 # Persistent storage for the SQLite database
 RUN mkdir -p /data && \
-    useradd -r -u 1001 -s /bin/false appuser && \
-    chown appuser /data
+    useradd -r -u 1001 -s /bin/false -d /nonexistent appuser && \
+    chown -R appuser /app /data
 
 USER appuser
 
 ENV DATABASE_URL=sqlite:////data/ovoprice.db
+ENV UV_NO_CACHE=1
 
 EXPOSE 8000
 
 VOLUME ["/data"]
 
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "--no-sync", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
