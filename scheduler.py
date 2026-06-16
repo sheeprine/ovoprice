@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from apscheduler.schedulers.background import BackgroundScheduler
 from sqlalchemy.orm import Session
 from database import engine, Product, Variant, PriceCheck
@@ -26,7 +26,7 @@ def check_product_prices(handle: str, session: Session | None = None):
             return
 
         data = parse_product(raw)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         product = session.query(Product).filter_by(handle=handle).first()
         if not product:

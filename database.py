@@ -1,4 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def _utcnow():
+    return datetime.now(timezone.utc)
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text
 )
@@ -20,7 +24,7 @@ class Product(Base):
     title = Column(String, nullable=False)
     image_url = Column(String)
     product_url = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
     last_checked_at = Column(DateTime)
 
     variants = relationship("Variant", back_populates="product", cascade="all, delete-orphan")
@@ -35,7 +39,7 @@ class Variant(Base):
     name = Column(String, nullable=False)
     sku = Column(String)
     tracked = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     product = relationship("Product", back_populates="variants")
     price_checks = relationship("PriceCheck", back_populates="variant", cascade="all, delete-orphan")
@@ -48,7 +52,7 @@ class PriceCheck(Base):
     variant_id = Column(Integer, ForeignKey("variants.id"), nullable=False)
     price = Column(Float, nullable=False)
     compare_at_price = Column(Float)
-    checked_at = Column(DateTime, default=datetime.utcnow)
+    checked_at = Column(DateTime, default=_utcnow)
 
     variant = relationship("Variant", back_populates="price_checks")
 

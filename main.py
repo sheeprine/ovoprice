@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 import json
 
@@ -28,7 +28,10 @@ templates = Jinja2Templates(directory="templates")
 def time_ago(dt: Optional[datetime]) -> str:
     if not dt:
         return "never"
-    delta = datetime.utcnow() - dt
+    # SQLite returns naive datetimes; treat them as UTC
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    delta = datetime.now(timezone.utc) - dt
     if delta < timedelta(minutes=1):
         return "just now"
     if delta < timedelta(hours=1):
@@ -165,7 +168,7 @@ def track_product(
         else:
             existing_variant.tracked = True
 
-    product.last_checked_at = datetime.utcnow()
+    product.last_checked_at = datetime.now(timezone.utc)
     db.commit()
 
     return RedirectResponse(f"/products/{handle}", status_code=303)
