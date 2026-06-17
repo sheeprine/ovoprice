@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import json
+import re
 
 from fastapi import FastAPI, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -47,6 +48,14 @@ def time_ago(dt: Optional[datetime]) -> str:
 templates.env.globals["time_ago"] = time_ago
 
 
+def extract_pack_count(name: str) -> int:
+    m = re.search(r'(\d+)', name)
+    if m:
+        n = int(m.group(1))
+        return n if n > 0 else 1
+    return 1
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
     products = db.query(Product).order_by(Product.created_at.desc()).all()
@@ -59,6 +68,9 @@ def index(request: Request, db: Session = Depends(get_db)):
 
         min_price = None
         first_price = None
+        best_per_unit = None
+        best_per_unit_variant = None
+        has_multi_pack = False
         for variant in tracked:
             checks = (
                 db.query(PriceCheck)
@@ -70,10 +82,17 @@ def index(request: Request, db: Session = Depends(get_db)):
                 continue
             latest = checks[-1].price
             first = checks[0].price
+            pack_count = extract_pack_count(variant.name)
+            if pack_count > 1:
+                has_multi_pack = True
+            per_unit = latest / pack_count
             if min_price is None or latest < min_price:
                 min_price = latest
             if first_price is None or first < first_price:
                 first_price = first
+            if best_per_unit is None or per_unit < best_per_unit:
+                best_per_unit = per_unit
+                best_per_unit_variant = variant.name
 
         change_pct = None
         if min_price is not None and first_price and first_price > 0:
@@ -86,6 +105,9 @@ def index(request: Request, db: Session = Depends(get_db)):
                 "first_price": first_price,
                 "change_pct": change_pct,
                 "variant_count": len(tracked),
+                "best_per_unit": best_per_unit,
+                "best_per_unit_variant": best_per_unit_variant,
+                "has_multi_pack": has_multi_pack,
             }
         )
 
@@ -200,6 +222,7 @@ def product_detail(request: Request, handle: str, db: Session = Depends(get_db))
         latest_price = checks[-1].price
         compare_at = checks[-1].compare_at_price
         change_pct = round((latest_price - first_price) / first_price * 100, 1) if first_price else 0
+        pack_count = extract_pack_count(variant.name)
 
         variant_data.append(
             {
@@ -209,6 +232,8 @@ def product_detail(request: Request, handle: str, db: Session = Depends(get_db))
                 "compare_at_price": compare_at,
                 "change_pct": change_pct,
                 "check_count": len(checks),
+                "pack_count": pack_count,
+                "price_per_unit": latest_price / pack_count,
             }
         )
 
@@ -227,11 +252,14 @@ def product_detail(request: Request, handle: str, db: Session = Depends(get_db))
 
     sorted_labels = sorted(all_labels)
 
+    has_multi_pack = any(v["pack_count"] > 1 for v in variant_data)
+
     return templates.TemplateResponse(request, "product.html", {
         "product": product,
         "variant_data": variant_data,
         "chart_datasets_json": json.dumps(chart_datasets),
         "chart_labels_json": json.dumps(sorted_labels),
+        "has_multi_pack": has_multi_pack,
     })
 
 

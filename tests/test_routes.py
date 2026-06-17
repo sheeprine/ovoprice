@@ -16,7 +16,8 @@ class TestIndex:
         resp = client.get("/")
         assert resp.status_code == 200
         assert "Test Battery" in resp.text
-        assert "€29.00" in resp.text
+        # 2 Pack at €43 → €21.50/item beats 1 Pack at €29.00/item
+        assert "€21.50" in resp.text
 
     def test_shows_variant_count(self, client, seeded_product):
         resp = client.get("/")

@@ -59,7 +59,11 @@
       <div class="mt-auto">
         {% if s.min_price is not none %}
         <div class="flex items-end gap-2 mb-1">
+          {% if s.has_multi_pack %}
+          <span class="text-2xl font-bold text-gray-900">€{{ "%.2f"|format(s.best_per_unit) }}<span class="text-sm font-normal text-gray-400">/item</span></span>
+          {% else %}
           <span class="text-2xl font-bold text-gray-900">€{{ "%.2f"|format(s.min_price) }}</span>
+          {% endif %}
           {% if s.change_pct is not none %}
             {% if s.change_pct < 0 %}
             <span class="text-sm font-semibold text-emerald-600 mb-0.5">
@@ -74,6 +78,9 @@
             {% endif %}
           {% endif %}
         </div>
+        {% if s.has_multi_pack %}
+        <p class="text-xs text-gray-400 -mt-0.5 mb-1">Best deal: {{ s.best_per_unit_variant }}</p>
+        {% endif %}
         {% else %}
         <p class="text-sm text-gray-400 mb-1">No price data yet</p>
         {% endif %}

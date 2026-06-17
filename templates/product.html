@@ -69,6 +69,7 @@
         <tr>
           <th class="px-5 py-3 text-left">Variant</th>
           <th class="px-5 py-3 text-right">Current</th>
+          {% if has_multi_pack %}<th class="px-5 py-3 text-right">Per Item</th>{% endif %}
           <th class="px-5 py-3 text-right">Original (RRP)</th>
           <th class="px-5 py-3 text-right">First Tracked</th>
           <th class="px-5 py-3 text-right">Change</th>
@@ -85,6 +86,9 @@
             {% endif %}
           </td>
           <td class="px-5 py-3 text-right font-semibold text-gray-900">€{{ "%.2f"|format(v.latest_price) }}</td>
+          {% if has_multi_pack %}
+          <td class="px-5 py-3 text-right text-gray-500">€{{ "%.2f"|format(v.price_per_unit) }}</td>
+          {% endif %}
           <td class="px-5 py-3 text-right text-gray-400">
             {% if v.compare_at_price %}€{{ "%.2f"|format(v.compare_at_price) }}{% else %}—{% endif %}
           </td>
