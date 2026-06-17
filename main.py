@@ -83,6 +83,8 @@ def index(request: Request, db: Session = Depends(get_db)):
             latest = checks[-1].price
             first = checks[0].price
             pack_count = extract_pack_count(variant.name)
+            if pack_count == 1 and len(tracked) == 1:
+                pack_count = extract_pack_count(product.title)
             if pack_count > 1:
                 has_multi_pack = True
             per_unit = latest / pack_count
@@ -223,6 +225,8 @@ def product_detail(request: Request, handle: str, db: Session = Depends(get_db))
         compare_at = checks[-1].compare_at_price
         change_pct = round((latest_price - first_price) / first_price * 100, 1) if first_price else 0
         pack_count = extract_pack_count(variant.name)
+        if pack_count == 1 and len(tracked_variants) == 1:
+            pack_count = extract_pack_count(product.title)
 
         variant_data.append(
             {
